@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Бонус за сдачу новому арендатору</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Segoe UI',Arial,sans-serif;background:#1e293b;overflow:hidden}
+.deck{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
+.slide{width:1280px;height:720px;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:45px 60px 40px;display:none;flex-direction:column;position:relative;overflow:hidden;transform-origin:center}
+.slide.active{display:flex}
+@media(max-width:1360px),(max-height:780px){.slide{transform:scale(.85)}}
+@media(max-width:1100px),(max-height:660px){.slide{transform:scale(.7)}}
+@media(max-width:900px),(max-height:540px){.slide{transform:scale(.55)}}
+.slide::before{content:'';position:absolute;top:0;left:0;width:100%;height:6px;background:linear-gradient(90deg,#1e3a8a,#f59e0b)}
+h1{font-size:26px;color:#0f172a;letter-spacing:.5px;line-height:1.25}
+h1.big{font-size:30px}
+.sub{font-size:16px;color:#64748b;margin-top:6px;font-style:italic}
+.divider{height:2px;background:#e2e8f0;margin:18px 0 22px}
+.cols{display:flex;gap:40px;flex:1}
+.col{flex:1}
+.col h2{font-size:15px;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:16px}
+.col ul{list-style:none}
+.col ul li{font-size:17px;color:#1e293b;padding:12px 0 12px 28px;position:relative;line-height:1.5;border-bottom:1px solid #f1f5f9}
+.col ul li::before{content:'●';position:absolute;left:0;color:#f59e0b;font-size:14px;top:15px}
+.note{display:block;font-size:14px;color:#64748b;font-style:italic;margin-top:4px}
+.formula{background:#0f172a;color:#fff;padding:24px;border-radius:12px;text-align:center;font-size:22px;font-weight:600;letter-spacing:.5px;margin-bottom:18px;box-shadow:0 8px 24px rgba(15,23,42,.25)}
+.formula span{color:#f59e0b}
+.big-num{font-size:42px;font-weight:700;line-height:1}
+.rule-list li{font-size:16px}
+.rule-list li::before{content:'→';color:#1e3a8a}
+.footer{margin-top:24px;text-align:center;font-size:14px;color:#94a3b8;font-style:italic}
+.card-block{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:26px 28px;display:flex;flex-direction:column;justify-content:space-between}
+.card-block.dark{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;border:none}
+.card-block.dark .title{color:#94a3b8}
+.card-block.dark .num{color:#f59e0b}
+.card-block .title{font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:#64748b;margin-bottom:14px}
+.card-block .num{font-size:48px;font-weight:700;color:#0f172a;line-height:1;margin-bottom:8px;font-variant-numeric:tabular-nums}
+.card-block .num span{font-size:20px;color:#64748b;font-weight:600}
+.card-block .desc{font-size:14px;color:#475569;line-height:1.5}
+.card-block.dark .desc{color:#cbd5e1}
+.calc-layout{display:grid;grid-template-columns:320px 1fr;gap:18px;flex:1;min-height:0}
+.calc-left{display:flex;flex-direction:column;gap:10px}
+.calc-right{display:flex;flex-direction:column;gap:10px;min-height:0}
+.object-box{background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;border-radius:10px;padding:12px 16px}
+.object-box h3{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:8px}
+.object-box select{width:100%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.2);color:#fff;font-size:14px;font-weight:700;padding:8px 12px;border-radius:8px;cursor:pointer}
+.object-box select:focus{outline:none;border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.2)}
+.object-box select option{background:#0f172a;color:#fff}
+.object-current{margin-top:6px;font-size:12px;color:#cbd5e1}
+.object-current b{color:#f59e0b}
+.calc-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px 16px}
+.calc-card h3{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:10px}
+.calc-card label{display:block;font-size:12px;color:#475569;margin-bottom:4px}
+.calc-card input,.calc-card select{width:100%;padding:7px 10px;font-size:14px;font-weight:600;color:#0f172a;border:2px solid #cbd5e1;border-radius:6px;background:#fff;font-variant-numeric:tabular-nums}
+.calc-card input:focus,.calc-card select:focus{outline:none;border-color:#1e3a8a;box-shadow:0 0 0 3px rgba(30,58,138,.1)}
+.calc-hint{font-size:11px;color:#94a3b8;margin-top:4px}
+.btn{padding:8px 12px;font-size:13px;font-weight:600;border:none;border-radius:8px;cursor:pointer;transition:background .15s}
+.btn-ghost{background:#f1f5f9;color:#475569}
+.btn-ghost:hover{background:#e2e8f0}
+.btn-add{background:#2e7d32;color:#fff;width:100%}
+.btn-add:hover{background:#1b5e20}
+.btn-danger{background:#fef2f2;color:#d32f2f;padding:4px 8px;font-size:12px;border:1px solid #fecaca;border-radius:6px;cursor:pointer}
+.btn-danger:hover{background:#fee2e2}
+.btn-row{display:flex;gap:6px;margin-top:6px}
+.btn-row .btn{flex:1;padding:7px 10px;font-size:12px}
+.deals-table-wrap{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;flex:1;min-height:0;display:flex;flex-direction:column}
+.deals-table-wrap h3{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;padding:10px 14px 8px;border-bottom:1px solid #e2e8f0;background:#fff}
+.deals-table-wrap h3 span{color:#1e3a8a}
+.deals-scroll{overflow-y:auto;flex:1}
+.deals-table{width:100%;border-collapse:collapse;font-size:12px}
+.deals-table thead th{background:#0f172a;color:#fff;padding:7px 6px;text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:.4px;position:sticky;top:0;z-index:2}
+.deals-table thead th:first-child{text-align:left;padding-left:12px}
+.deals-table tbody td{padding:5px 4px;text-align:center;border-bottom:1px solid #e2e8f0;font-variant-numeric:tabular-nums;vertical-align:middle}
+.deals-table tbody tr:nth-child(even){background:#fff}
+.deals-table td input{padding:5px 8px;font-size:12px;border:1px solid #cbd5e1;border-radius:5px;width:100%;background:#fff;color:#0f172a;font-weight:600;font-variant-numeric:tabular-nums}
+.deals-table td input.name-input{text-align:left}
+.deals-table td input.map-input{text-align:right}
+.deals-table .bonus-cell{color:#d32f2f;font-weight:700;font-size:13px}
+.total-bar{background:#0f172a;color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.total-bar .lbl{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#cbd5e1}
+.total-bar .val{font-size:20px;font-weight:700;color:#f59e0b;font-variant-numeric:tabular-nums}
+.distr-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px}
+.distr-box h3{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:10px}
+.distr-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #e2e8f0;font-size:14px}
+.distr-row:last-child{border-bottom:none}
+.distr-row .name{color:#475569}
+.distr-row .pct{color:#94a3b8;font-size:12px;margin-left:6px}
+.distr-row .amount{font-weight:700;color:#0f172a;font-variant-numeric:tabular-nums}
+.distr-row.total{background:#0f172a;color:#fff;margin:6px -18px -14px;padding:14px 18px;border-radius:0 0 10px 10px}
+.distr-row.total .name{color:#cbd5e1}
+.distr-row.total .amount{color:#f59e0b;font-size:18px}
+.empty-state{text-align:center;padding:30px 20px;color:#94a3b8;font-style:italic;font-size:13px}
+.steps{display:flex;gap:20px;align-items:stretch;flex:1}
+.step{flex:1;border-radius:12px;padding:24px 22px;display:flex;flex-direction:column}
+.step .num-badge{font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.step .period{font-size:20px;font-weight:700;margin-bottom:14px;line-height:1.2}
+.step .text{font-size:14px;line-height:1.5;color:#1e293b}
+.step-1{background:#f1f5f9;border:1px solid #e2e8f0}
+.step-1 .num-badge{color:#64748b}
+.step-1 .period{color:#0f172a}
+.step-2{background:#eff6ff;border:1px solid #bfdbfe}
+.step-2 .num-badge{color:#1e40af}
+.step-2 .period{color:#1e3a8a}
+.step-3{background:#f0fdf4;border:1px solid #bbf7d0}
+.step-3 .num-badge{color:#166534}
+.step-3 .period{color:#14532d}
+.arrow{align-self:center;font-size:26px;color:#cbd5e1;font-weight:700;padding:0 2px}
+.warning{margin-top:22px;background:#fef2f2;border-left:4px solid #d32f2f;border-radius:10px;padding:18px 24px}
+.warning h3{font-size:14px;text-transform:uppercase;letter-spacing:1.5px;color:#991b1b;margin-bottom:10px}
+.warning p{font-size:15px;color:#1e293b;line-height:1.5}
+.warning p b{color:#7f1d1d}
+.final{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:26px}
+.final .formula-big{background:#0f172a;color:#fff;padding:30px 44px;border-radius:16px;font-size:26px;font-weight:700;letter-spacing:.5px;box-shadow:0 12px 36px rgba(15,23,42,.3)}
+.final .formula-big span{color:#f59e0b}
+.final .formula-big small{display:block;font-size:15px;font-weight:500;color:#cbd5e1;margin-top:10px;letter-spacing:0}
+.final .points{display:flex;gap:20px}
+.final .point{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:18px 24px;min-width:190px}
+.final .point .big{font-size:32px;font-weight:700;color:#0f172a;line-height:1;margin-bottom:6px}
+.final .point .big span{font-size:16px;color:#64748b}
+.final .point .lbl{font-size:13px;color:#475569}
+.final .timeline{display:flex;align-items:center;gap:8px;font-size:13px;color:#64748b;flex-wrap:wrap;justify-content:center}
+.final .timeline .dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1}
+.final .timeline .dot.blue{background:#1e3a8a}
+.final .timeline .dot.green{background:#2e7d32}
+.final .timeline .dot.orange{background:#f59e0b}
+.final .timeline .dot.red{background:#d32f2f}
+.final .warn-line{font-size:14px;color:#991b1b;background:#fef2f2;padding:10px 20px;border-radius:8px;border-left:3px solid #d32f2f}
+.nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;background:rgba(15,23,42,.85);padding:10px 20px;border-radius:40px;backdrop-filter:blur(8px);z-index:100}
+.nav button{background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;padding:6px 12px;border-radius:20px;transition:background .15s}
+.nav button:hover:not(:disabled){background:rgba(255,255,255,.15)}
+.nav button:disabled{opacity:.3;cursor:default}
+.nav .counter{color:#fff;font-size:14px;font-weight:600;min-width:60px;text-align:center;font-variant-numeric:tabular-nums}
+.progress{position:fixed;top:0;left:0;height:4px;background:linear-gradient(90deg,#1e3a8a,#f59e0b);transition:width .25s ease;z-index:100}
+</style>
+</head><body>
+
+<div class="progress" id="progress"></div>
+
+<div class="deck">
+
+  <!-- ═══════════ СЛАЙД 1 — ТИТУЛ + ПРАВИЛО ═══════════ -->
+  <div class="slide active">
+    <h1>БОНУС ЗА СДАЧУ НОВОМУ АРЕНДАТОРУ</h1>
+    <div class="sub">Формула: Бонус = % от МАП (месячной арендной платы)</div>
+    <div class="divider"></div>
+
+    <div class="cols">
+      <div class="card-block dark">
+        <div class="title">Сторонний брокер</div>
+        <div class="num">100% <span>от МАП</span></div>
+        <div class="desc">
+          Полная месячная арендная ставка за каждого приведённого арендатора.
+          Выплачивается напрямую брокеру.
+        </div>
+      </div>
+
+      <div class="card-block">
+        <div class="title">Команда Метрика</div>
+        <div class="num">50% <span>от МАП</span></div>
+        <div class="desc">
+          <b>40%</b> — управляющему<br>
+          <b>10%</b> — маркетологу<br><br>
+          Итого команда получает половину месячной ставки.
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      МАП — месячный арендный поток · Бонус выплачивается после выполнения условий (слайд 3)
+    </div>
+  </div>
+
+  <!-- ═══════════ СЛАЙД 2 — КАЛЬКУЛЯТОР ═══════════ -->
+  <div class="slide">
+    <h1>КАЛЬКУЛЯТОР БОНУСА</h1>
+    <div class="sub">Выберите объект и категорию — расчёт в реальном времени</div>
+    <div class="divider"></div>
+
+    <div class="calc-layout">
+      <div class="calc-left">
+        <div class="object-box">
+          <h3>Объект</h3>
+          <select id="object" onchange="onObjectChange()">
+            <option value="ufa">УФА (Менделеева)</option>
+            <option value="kazan">КАЗАНЬ</option>
+            <option value="moscow">Москва (Челюскинская)</option>
+          </select>
+          <div class="object-current">
+            Расчёт по объекту: <b id="obj-name">УФА (Менделеева)</b>
+          </div>
+        </div>
+
+        <div class="calc-card">
+          <h3>Категория</h3>
+          <label>Кому начисляется бонус</label>
+          <select id="category" onchange="render()">
+            <option value="broker">Сторонний брокер</option>
+            <option value="metric">Команда Метрика</option>
+          </select>
+          <div class="calc-hint" id="cat-hint">100% от МАП</div>
+        </div>
+
+        <div class="calc-card">
+          <h3>Действия</h3>
+          <button class="btn btn-add" onclick="addDeal()">+ Добавить сделку</button>
+          <div class="btn-row">
+            <button class="btn btn-ghost" onclick="resetAll()">Сбросить</button>
+            <button class="btn btn-ghost" onclick="loadDemo()">Демо</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="calc-right">
+        <div class="deals-table-wrap">
+          <h3>Сделки — <span id="tbl-object">УФА (Менделеева)</span></h3>
+          <div class="deals-scroll">
+            <table class="deals-table">
+              <thead>
+                <tr>
+                  <th style="width:36%">Арендатор</th>
+                  <th style="width:24%">МАП, ₽/мес</th>
+                  <th style="width:26%">Бонус, ₽</th>
+                  <th style="width:14%"></th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+            <div id="empty" class="empty-state" style="display:none">
+              Нет сделок. Нажмите «+ Добавить сделку».
+            </div>
+          </div>
+          <div class="total-bar">
+            <span class="lbl">Итого бонус по объекту</span>
+            <span class="val" id="total">0 ₽</span>
+          </div>
+        </div>
+
+        <div class="distr-box">
+          <h3>Распределение получателям</h3>
+          <div id="distr-rows"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ СЛАЙД 3 — УСЛОВИЯ ВЫПЛАТЫ ═══════════ -->
+  <div class="slide">
+    <h1>УСЛОВИЯ ВЫПЛАТЫ БОНУСА</h1>
+    <div class="sub">Три обязательных условия + правило удержания</div>
+    <div class="divider"></div>
+
+    <div class="steps">
+      <div class="step step-1">
+        <div class="num-badge">Шаг 1</div>
+        <div class="period">Обеспечительный платёж</div>
+        <div class="text">
+          Получение обеспечительного платежа в размере <b>МАП</b>.
+          Поступление на счёт компании.
+        </div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step step-2">
+        <div class="num-badge">Шаг 2</div>
+        <div class="period">Договор на ресурсе</div>
+        <div class="text">
+          Размещение <b>подписанного обеими сторонами</b> договора аренды
+          на сетевом ресурсе Метрика.
+        </div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="step step-3">
+        <div class="num-badge">Шаг 3</div>
+        <div class="period">Выплата в 1 рабочий день</div>
+        <div class="text">
+          Выплата бонуса осуществляется <b>в течение одного рабочего дня</b>,
+          следующего за днём зачисления обеспечительного платежа на счёт.
+        </div>
+      </div>
+    </div>
+
+    <div class="warning">
+      <h3>⚠ Удержание при расторжении</h3>
+      <p>
+        Если арендатор расторг договор аренды <b>в течение 6 месяцев</b> —
+        ранее выплаченный бонус <b>удерживается в полном объёме</b>
+        у брокера и команды Метрика. Удержание производится
+        <b>из следующей выплаты бонуса</b>.
+      </p>
+    </div>
+  </div>
+
+  <!-- ═══════════ СЛАЙД 4 — ИТОГ ═══════════ -->
+  <div class="slide">
+    <h1>ИТОГ</h1>
+    <div class="sub">Ключевые цифры и timeline выплаты</div>
+    <div class="divider"></div>
+
+    <div class="final">
+      <div class="formula-big">
+        Бонус = % от МАП
+        <small>Брокер 100% · Метрика 50% (40% + 10%)</small>
+      </div>
+
+      <div class="points">
+        <div class="point">
+          <div class="big">100%</div>
+          <div class="lbl">Сторонний брокер</div>
+        </div>
+        <div class="point">
+          <div class="big">50%</div>
+          <div class="lbl">Команда Метрика</div>
+        </div>
+        <div class="point">
+          <div class="big">1 <span>раб. день</span></div>
+          <div class="lbl">Срок выплаты</div>
+        </div>
+      </div>
+
+      <div class="timeline">
+        <span class="dot blue"></span> Договор
+        <span style="margin:0 6px;color:#cbd5e1">──</span>
+        <span class="dot green"></span> Обеспечительный платёж = МАП
+        <span style="margin:0 6px;color:#cbd5e1">──</span>
+        <span class="dot orange"></span> Выплата (1 раб. день)
+        <span style="margin:0 6px;color:#cbd5e1">──</span>
+        <span class="dot red"></span> 6 мес — риск удержания
+      </div>
+
+      <div class="warn-line">
+        Расторжение в течение 6 месяцев → удержание 100% бонуса из следующей выплаты
+      </div>
+    </div>
+  </div>
+
+</div><!-- ═══════════ НАВИГАЦИЯ ═══════════ -->
+<div class="nav">
+  <button id="prev" onclick="go(-1)">‹</button>
+  <span class="counter" id="counter">1 / 4</span>
+  <button id="next" onclick="go(1)">›</button>
+</div>
+
+<script>
+/* ── НАВИГАЦИЯ ─────────────────────────────── */
+let current = 0;
+const slides = document.querySelectorAll('.slide');
+const counter = document.getElementById('counter');
+const progress = document.getElementById('progress');
+const total = slides.length;
+
+function show(i) {
+  slides.forEach(s => s.classList.remove('active'));
+  slides[i].classList.add('active');
+  current = i;
+  counter.textContent = (i + 1) + ' / ' + total;
+  progress.style.width = ((i + 1) / total * 100) + '%';
+  document.getElementById('prev').disabled = i === 0;
+  document.getElementById('next').disabled = i === total - 1;
+  if (i === 1) render();
+}
+function go(dir) {
+  const next = current + dir;
+  if (next >= 0 && next < total) show(next);
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); go(1); }
+  if (e.key === 'ArrowLeft'  || e.key === 'PageUp')                    { e.preventDefault(); go(-1); }
+  if (e.key === 'Home') show(0);
+  if (e.key === 'End')  show(total - 1);
+});
+let touchStartX = 0;
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+});
+
+/* ── КАЛЬКУЛЯТОР ───────────────────────────── */
+const fmt = n => Math.round(n).toLocaleString('ru-RU') + ' ₽';
+const OBJECTS = {
+  ufa:    { label: 'УФА (Менделеева)' },
+  kazan:  { label: 'КАЗАНЬ' },
+  moscow: { label: 'Москва (Челюскинская)' }
+};
+const CATEGORIES = {
+  broker: { label: 'Сторонний брокер', hint: '100% от МАП' },
+  metric: { label: 'Команда Метрика',  hint: '50% от МАП (40% + 10%)' }
+};
+
+let portfolios = { ufa: [], kazan: [], moscow: [] };
+let nextId = 1;
+const uid = () => nextId++;
+
+const currentObject = () => document.getElementById('object').value;
+const currentList = () => portfolios[currentObject()];
+
+const DEMO = {
+  ufa: [
+    { name: 'ООО «Ромашка»', map: 100000 },
+    { name: 'ИП Смирнов',    map: 80000 },
+    { name: 'ООО «Вектор»',  map: 150000 },
+    { name: 'ООО «Заря»',    map: 60000 }
+  ],
+  kazan: [
+    { name: 'ООО «Волга»',    map: 120000 },
+    { name: 'ИП Гатин',       map: 95000 },
+    { name: 'ООО «ТатСтрой»', map: 180000 },
+    { name: 'ООО «Кама»',     map: 70000 }
+  ],
+  moscow: [
+    { name: 'ООО «Столица»',   map: 500000 },
+    { name: 'ИП Иванов',       map: 250000 },
+    { name: 'ООО «Метрополь»', map: 320000 },
+    { name: 'ООО «Прайм»',     map: 180000 },
+    { name: 'ИП Петрова',      map: 140000 }
+  ]
+};
+
+function loadDemo() {
+  const obj = currentObject();
+  portfolios[obj] = DEMO[obj].map(d => ({ id: uid(), ...d }));
+  render();
+}
+function onObjectChange() {
+  const obj = currentObject();
+  const label = OBJECTS[obj].label;
+  document.getElementById('obj-name').textContent = label;
+  document.getElementById('tbl-object').textContent = label;
+  if (portfolios[obj].length === 0) {
+    portfolios[obj] = DEMO[obj].map(d => ({ id: uid(), ...d }));
+  }
+  render();
+}
+function onCategoryChange() {
+  const cat = document.getElementById('category').value;
+  document.getElementById('cat-hint').textContent = CATEGORIES[cat].hint;
+  render();
+}
+
+function addDeal() {
+  currentList().push({ id: uid(), name: 'Новый арендатор', map: 0 });
+  render();
+}
+function removeDeal(id) {
+  const obj = currentObject();
+  portfolios[obj] = portfolios[obj].filter(d => d.id !== id);
+  render();
+}
+function updateDeal(id, field, value) {
+  const d = currentList().find(x => x.id === id);
+  if (!d) return;
+  if (field === 'name') d[field] = value;
+  else d[field] = Math.max(+value || 0, 0);
+  render();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+
+/* Коэффициенты бонуса в зависимости от категории */
+function getCoefficients(cat) {
+  if (cat === 'broker') return { broker: 1.0, manager: 0, marketer: 0, total: 1.0 };
+  /* metric: 50% = 40% управляющий + 10% маркетолог */
+  return { broker: 0, manager: 0.4, marketer: 0.1, total: 0.5 };
+}
+
+function render() {
+  const objEl = document.getElementById('object');
+  const catEl = document.getElementById('category');
+  if (!objEl || !catEl) return;
+
+  const cat = catEl.value;
+  const coef = getCoefficients(cat);
+  const list = currentList();
+  const tbody = document.getElementById('tbody');
+  const empty = document.getElementById('empty');
+  if (!tbody) return;
+
+  /* Обновляем подсказку категории */
+  const hintEl = document.getElementById('cat-hint');
+  if (hintEl) hintEl.textContent = CATEGORIES[cat].hint;
+
+  /* Считаем бонус по каждой сделке */
+  let totalMap = 0;
+  let totalBonus = 0;
+
+  if (list.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    tbody.innerHTML = list.map(d => {
+      const bonus = d.map * coef.total;
+      totalMap += d.map;
+      totalBonus += bonus;
+      return `<tr>
+        <td><input class="name-input" type="text" value="${escapeHtml(d.name)}"
+             oninput="updateDeal(${d.id},'name',this.value)"></td>
+        <td><input class="map-input" type="number" min="0" value="${d.map}"
+             oninput="updateDeal(${d.id},'map',this.value)"></td>
+        <td class="bonus-cell">${bonus ? bonus.toLocaleString('ru-RU') : '—'}</td>
+        <td><button class="btn-danger" onclick="removeDeal(${d.id})">✕</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  /* ── Итого по объекту ── */
+  document.getElementById('total').textContent = fmt(totalBonus);
+
+  /* ── Распределение получателям ── */
+  const distr = document.getElementById('distr-rows');
+  if (cat === 'broker') {
+    distr.innerHTML = `
+      <div class="distr-row">
+        <span class="name">Сторонний брокер <span class="pct">100%</span></span>
+        <span class="amount">${fmt(totalBonus)}</span>
+      </div>
+      <div class="distr-row total">
+        <span class="name">ИТОГО К ВЫПЛАТЕ</span>
+        <span class="amount">${fmt(totalBonus)}</span>
+      </div>`;
+  } else {
+    const mgr = totalMap * coef.manager;
+    const mkt = totalMap * coef.marketer;
+    distr.innerHTML = `
+      <div class="distr-row">
+        <span class="name">Управляющий <span class="pct">40%</span></span>
+        <span class="amount">${fmt(mgr)}</span>
+      </div>
+      <div class="distr-row">
+        <span class="name">Маркетолог <span class="pct">10%</span></span>
+        <span class="amount">${fmt(mkt)}</span>
+      </div>
+      <div class="distr-row total">
+        <span class="name">ИТОГО МЕТРИКА (50%)</span>
+        <span class="amount">${fmt(totalBonus)}</span>
+      </div>`;
+  }
+}
+
+function resetAll() {
+  const obj = currentObject();
+  portfolios[obj] = [];
+  render();
+}
+
+/* ── СТАРТ ──────────────────────────────────── */
+show(0);
+onObjectChange();
+</script>
+
+</body>
+</html>
