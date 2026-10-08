@@ -142,32 +142,32 @@ h1.big{font-size:30px}
   <!-- ═══════════ СЛАЙД 1 — ТИТУЛ + ПРАВИЛО ═══════════ -->
   <div class="slide active">
     <h1>БОНУС ЗА СДАЧУ НОВОМУ АРЕНДАТОРУ</h1>
-    <div class="sub">Формула: Бонус = % от МАП (месячной арендной платы)</div>
+    <div class="sub">Формула: Бонус = % от обеспечительного платежа</div>
     <div class="divider"></div>
 
     <div class="cols">
       <div class="card-block dark">
         <div class="title">Сторонний брокер</div>
-        <div class="num">100% <span>от МАП</span></div>
+        <div class="num">100% <span>от обеспечительного платежа</span></div>
         <div class="desc">
-          Полная месячная арендная ставка за каждого приведённого арендатора.
+          Полная сумма обеспечительного платежа за каждого приведённого арендатора.
           Выплачивается напрямую брокеру.
         </div>
       </div>
 
       <div class="card-block">
         <div class="title">Команда Метрика</div>
-        <div class="num">50% <span>от МАП</span></div>
+        <div class="num">50% <span>от обеспечительного платежа</span></div>
         <div class="desc">
           <b>40%</b> — управляющему<br>
           <b>10%</b> — маркетологу<br><br>
-          Итого команда получает половину месячной ставки.
+          Итого команда получает половину обеспечительного платежа.
         </div>
       </div>
     </div>
 
     <div class="footer">
-      МАП — месячный арендный поток · Бонус выплачивается после выполнения условий (слайд 3)
+      Обеспечительный платёж равен месячной арендной плате · Бонус выплачивается после выполнения условий (слайд 3)
     </div>
   </div>
 
@@ -198,7 +198,7 @@ h1.big{font-size:30px}
             <option value="broker">Сторонний брокер</option>
             <option value="metric">Команда Метрика</option>
           </select>
-          <div class="calc-hint" id="cat-hint">100% от МАП</div>
+          <div class="calc-hint" id="cat-hint">100% от обеспечительного платежа</div>
         </div>
 
         <div class="calc-card">
@@ -219,7 +219,7 @@ h1.big{font-size:30px}
               <thead>
                 <tr>
                   <th style="width:36%">Арендатор</th>
-                  <th style="width:24%">МАП, ₽/мес</th>
+                  <th style="width:24%">Обеспечительный платёж, ₽</th>
                   <th style="width:26%">Бонус, ₽</th>
                   <th style="width:14%"></th>
                 </tr>
@@ -255,7 +255,7 @@ h1.big{font-size:30px}
         <div class="num-badge">Шаг 1</div>
         <div class="period">Обеспечительный платёж</div>
         <div class="text">
-          Получение обеспечительного платежа в размере <b>МАП</b>.
+          Получение обеспечительного платежа.
           Поступление на счёт компании.
         </div>
       </div>
@@ -298,7 +298,7 @@ h1.big{font-size:30px}
 
     <div class="final">
       <div class="formula-big">
-        Бонус = % от МАП
+        Бонус = % от обеспечительного платежа
         <small>Брокер 100% · Метрика 50% (40% + 10%)</small>
       </div>
 
@@ -320,7 +320,7 @@ h1.big{font-size:30px}
       <div class="timeline">
         <span class="dot blue"></span> Договор
         <span style="margin:0 6px;color:#cbd5e1">──</span>
-        <span class="dot green"></span> Обеспечительный платёж = МАП
+        <span class="dot green"></span> Обеспечительный платёж
         <span style="margin:0 6px;color:#cbd5e1">──</span>
         <span class="dot orange"></span> Выплата (1 раб. день)
         <span style="margin:0 6px;color:#cbd5e1">──</span>
@@ -383,8 +383,8 @@ const OBJECTS = {
   moscow: { label: 'Москва (Челюскинская)' }
 };
 const CATEGORIES = {
-  broker: { label: 'Сторонний брокер', hint: '100% от МАП' },
-  metric: { label: 'Команда Метрика',  hint: '50% от МАП (40% + 10%)' }
+  broker: { label: 'Сторонний брокер', hint: '100% от обеспечительного платежа' },
+  metric: { label: 'Команда Метрика',  hint: '50% от обеспечительного платежа (40% + 10%)' }
 };
 
 let portfolios = { ufa: [], kazan: [], moscow: [] };
@@ -493,62 +493,4 @@ function render() {
     tbody.innerHTML = list.map(d => {
       const bonus = d.map * coef.total;
       totalMap += d.map;
-      totalBonus += bonus;
-      return `<tr>
-        <td><input class="name-input" type="text" value="${escapeHtml(d.name)}"
-             oninput="updateDeal(${d.id},'name',this.value)"></td>
-        <td><input class="map-input" type="number" min="0" value="${d.map}"
-             oninput="updateDeal(${d.id},'map',this.value)"></td>
-        <td class="bonus-cell">${bonus ? bonus.toLocaleString('ru-RU') : '—'}</td>
-        <td><button class="btn-danger" onclick="removeDeal(${d.id})">✕</button></td>
-      </tr>`;
-    }).join('');
-  }
-
-  /* ── Итого по объекту ── */
-  document.getElementById('total').textContent = fmt(totalBonus);
-
-  /* ── Распределение получателям ── */
-  const distr = document.getElementById('distr-rows');
-  if (cat === 'broker') {
-    distr.innerHTML = `
-      <div class="distr-row">
-        <span class="name">Сторонний брокер <span class="pct">100%</span></span>
-        <span class="amount">${fmt(totalBonus)}</span>
-      </div>
-      <div class="distr-row total">
-        <span class="name">ИТОГО К ВЫПЛАТЕ</span>
-        <span class="amount">${fmt(totalBonus)}</span>
-      </div>`;
-  } else {
-    const mgr = totalMap * coef.manager;
-    const mkt = totalMap * coef.marketer;
-    distr.innerHTML = `
-      <div class="distr-row">
-        <span class="name">Управляющий <span class="pct">40%</span></span>
-        <span class="amount">${fmt(mgr)}</span>
-      </div>
-      <div class="distr-row">
-        <span class="name">Маркетолог <span class="pct">10%</span></span>
-        <span class="amount">${fmt(mkt)}</span>
-      </div>
-      <div class="distr-row total">
-        <span class="name">ИТОГО МЕТРИКА (50%)</span>
-        <span class="amount">${fmt(totalBonus)}</span>
-      </div>`;
-  }
-}
-
-function resetAll() {
-  const obj = currentObject();
-  portfolios[obj] = [];
-  render();
-}
-
-/* ── СТАРТ ──────────────────────────────────── */
-show(0);
-onObjectChange();
-</script>
-
-</body>
-</html>
+      totalBonus +=
